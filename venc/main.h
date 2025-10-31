@@ -17,6 +17,7 @@
 #include <sys/socket.h>
 #include <sys/uio.h>
 
+#ifndef PLATFORM_STAR6E
 #include "hi_buffer.h"
 #include "hi_comm_adec.h"
 #include "hi_comm_aenc.h"
@@ -50,6 +51,16 @@
 #include "mpi_vi.h"
 #include "mpi_vo.h"
 #include "mpi_vpss.h"
+#else
+typedef enum {
+  PT_H264 = 0,
+  PT_H265 = 1,
+} PAYLOAD_TYPE_E;
+
+typedef int HI_BOOL;
+#define HI_TRUE 1
+#define HI_FALSE 0
+#endif
 
 typedef enum SensorType {
   IMX307 = 0,
@@ -66,11 +77,19 @@ struct RTPHeader {
 };
 #pragma pack(pop)
 
+#ifndef MIN
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
+#endif
+
+void printHelp(void);
 void* __ISP_THREAD__(void* param);
+#ifndef PLATFORM_STAR6E
 int processStream(VENC_CHN channel_id, int socket_handle,
   struct sockaddr* dst_address, uint16_t max_frame_size);
+#endif
 void sendPacket(uint8_t* pack_data, uint32_t pack_size, int socket_handle,
   struct sockaddr* dst_address, uint32_t max_size);
+#ifndef PLATFORM_STAR6E
 HI_S32 getGOPAttributes(VENC_GOP_MODE_E enGopMode, VENC_GOP_ATTR_S* pstGopAttr);
 
 int mipi_set_hs_mode(int device, lane_divide_mode_t mode);
@@ -80,6 +99,7 @@ int mipi_enable_sensor_clock(
   int device, sns_clk_source_t sensor_id, int enable);
 int mipi_set_sensor_reset(int device, sns_clk_source_t sensor_id, int enable);
 int mipi_configure(int device, combo_dev_attr_t* config);
+#endif
 
 /* --- Console arguments parser --- */
 #define __BeginParseConsoleArguments__(printHelpFunction) if (argc < 2 \
